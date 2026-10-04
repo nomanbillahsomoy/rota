@@ -582,12 +582,12 @@ function shiftOptions(selected = '') {
 
 function bindNav() {
   document.querySelectorAll('#navlist li').forEach(li => {
-    if (li.getAttribute('data-view') === 'settings' && currentUserRole !== 'admin') { li.style.display = 'none'; }
-    if (li.getAttribute('data-view') === 'settings' && currentUserRole !== 'admin') {
+    if (li.getAttribute('data-view') === 'settings' && window.currentUserRole !== 'admin') { li.style.display = 'none'; }
+    if (li.getAttribute('data-view') === 'settings' && window.currentUserRole !== 'admin') {
       li.style.display = 'none';
     }
 
-    if (li.getAttribute('data-view') === 'settings' && currentUserRole !== 'admin') {
+    if (li.getAttribute('data-view') === 'settings' && window.currentUserRole !== 'admin') {
       li.style.display = 'none';
     }
 
@@ -1117,7 +1117,7 @@ function renderSchedule(root) {
             });
             
             return `<div class="cell ${cls}" style="padding:0;">
-              <select class="inline-select" ${currentUserRole !== 'admin' ? 'disabled' : ''} ${currentUserRole !== 'admin' ? 'disabled' : ''} ${currentUserRole !== 'admin' ? 'disabled' : ''} onchange="updatePermanentRoster('${s.staff_id}', '${d.weekday}', this.value); this.parentElement.className = 'cell ' + (this.value === 'OFF' ? 'off' : (this.value === '11pm' ? 'night' : ''));">
+              <select class="inline-select" ${window.currentUserRole !== 'admin' ? 'disabled' : ''} ${window.currentUserRole !== 'admin' ? 'disabled' : ''} ${window.currentUserRole !== 'admin' ? 'disabled' : ''} onchange="updatePermanentRoster('${s.staff_id}', '${d.weekday}', this.value); this.parentElement.className = 'cell ' + (this.value === 'OFF' ? 'off' : (this.value === '11pm' ? 'night' : ''));">
                 ${optionsHtml}
               </select>
             </div>`;
@@ -1809,13 +1809,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const logoutBtn = document.getElementById('btnLogout');
 
   let currentUser = null;
-  let currentUserRole = 'user'; // default
+  window.window.currentUserRole = 'user'; // default
 
   async function checkAuth() {
     const { data: { session } } = await dbClient.auth.getSession();
     if (session && session.user) {
       currentUser = session.user;
-      currentUserRole = session.user.user_metadata?.role || 'user';
+      window.currentUserRole = session.user.user_metadata?.role || 'user';
       loginScreen.style.display = 'none';
       appScreen.style.display = 'flex';
       startApp();
@@ -1828,7 +1828,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   dbClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
       currentUser = null;
-      currentUserRole = 'user';
+      window.currentUserRole = 'user';
       loginScreen.style.display = 'flex';
       appScreen.style.display = 'none';
     }

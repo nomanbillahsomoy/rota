@@ -582,14 +582,10 @@ function shiftOptions(selected = '') {
 
 function bindNav() {
   document.querySelectorAll('#navlist li').forEach(li => {
-    if (li.getAttribute('data-view') === 'settings' && window.currentUserRole !== 'admin') { li.style.display = 'none'; }
-    if (li.getAttribute('data-view') === 'settings' && window.currentUserRole !== 'admin') {
-      li.style.display = 'none';
-    }
+    
+    
 
-    if (li.getAttribute('data-view') === 'settings' && window.currentUserRole !== 'admin') {
-      li.style.display = 'none';
-    }
+    
 
     li.addEventListener('click', () => {
       document.querySelectorAll('#navlist li').forEach(x => x.classList.remove('active'));
@@ -1818,6 +1814,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.currentUserRole = session.user.user_metadata?.role || 'user';
       loginScreen.style.display = 'none';
       appScreen.style.display = 'flex';
+      
+      document.querySelectorAll('#navlist li').forEach(li => {
+        if (li.getAttribute('data-view') === 'settings') {
+          li.style.display = window.currentUserRole === 'admin' ? 'block' : 'none';
+        }
+      });
+      
       startApp();
     } else {
       loginScreen.style.display = 'flex';

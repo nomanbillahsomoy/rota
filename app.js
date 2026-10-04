@@ -23,7 +23,7 @@ let DB = {
   config: {}
 };
 
-window.onerror = function(msg, url, lineNo, columnNo, error) {
+window.addEventListener('unhandledrejection', function(event) { alert('Unhandled promise rejection: ' + event.reason); });\n  window.onerror = function(msg, url, lineNo, columnNo, error) {
   const root = document.getElementById('viewRoot');
   if (root && root.innerHTML === '') {
     root.innerHTML = `<div style="color:red; padding:20px;"><h3>JS Error</h3><p>${msg}</p><p>Line: ${lineNo}</p></div>`;
@@ -1835,17 +1835,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   loginBtn.onclick = async () => {
-    loginError.style.display = 'none';
-    loginBtn.textContent = 'Logging in...';
-    const email = loginEmail.value.trim();
-    const password = loginPass.value.trim();
-    
-    const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
-    if (error) {
-      loginError.textContent = error.message;
+    try {
+      loginError.style.display = 'none';
+      loginBtn.textContent = 'Logging in...';
+      const email = loginEmail.value.trim();
+      const password = loginPass.value.trim();
+      
+      const res = await dbClient.auth.signInWithPassword({ email, password });
+      if (res.error) {
+        loginError.textContent = res.error.message;
+        loginError.style.display = 'block';
+      } else {
+        await checkAuth();
+      }
+    } catch(err) {
+      loginError.textContent = 'Fatal Error: ' + err.message;
       loginError.style.display = 'block';
-    } else {
-      await checkAuth();
+      console.error(err);
     }
     loginBtn.textContent = 'Log In';
   };

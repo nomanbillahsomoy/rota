@@ -129,6 +129,20 @@ function esc(s) {
   return (s === undefined || s === null) ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+
+async function logAudit(action, staff_id, date, desk_id, original_value, new_value, reason, notes) {
+  try {
+    const user_email = currentUser ? currentUser.email : 'Unknown';
+    const log = {
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      user_email, action, staff_id, date, desk_id, original_value, new_value, reason, notes, source: 'UI'
+    };
+    await dbClient.from('audit_logs').insert([log]);
+  } catch (err) {
+    console.error('Audit Log Error:', err);
+  }
+}
+
 function toast(msg, isError = false) {
   const host = document.getElementById('toastHost') || document.body;
   const el = document.createElement('div');
@@ -963,6 +977,14 @@ function renderDashboard(root) {
   document.getElementById('filterDesk').onchange = (e) => { STATE.deskFilter = e.target.value; renderDashboard(root); };
   document.getElementById('filterStatus').onchange = (e) => { STATE.statusFilter = e.target.value; renderDashboard(root); };
 
+  
+  const btnAdd = root.querySelector('#btnAddStaff');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', () => {
+      editStaff(null);
+    });
+  }
+
   root.querySelectorAll('[data-staff]').forEach(el => {
     el.addEventListener('click', () => showStaffModal(el.getAttribute('data-staff')));
   });
@@ -1545,9 +1567,89 @@ function renderDayOffForm(onDone) {
 }
 
 // ---------- STAFF DIRECTORY VIEW ----------
+
+window.editStaff = function(staffId) {
+  let s = null;
+  if (staffId) {
+    s = DB.staff.find(x => x.staff_id === staffId);
+  }
+  
+  const m = document.createElement('div');
+  m.className = 'modal active';
+  m.innerHTML = `
+    <div class="modal-content" style="max-width: 500px;">
+      <h3>${s ? 'Edit Staff' : 'Add New Staff'}</h3>
+      <div style="margin-top:15px; display:grid; gap:10px;">
+        <div><label>Staff ID (Unique)</label><input type="text" id="es_id" class="input" value="${s ? s.staff_id : ''}" ${s ? 'disabled' : ''}></div>
+        <div><label>Full Name</label><input type="text" id="es_name" class="input" value="${s ? esc(s.display_name) : ''}"></div>
+        <div><label>Alias (Short Name)</label><input type="text" id="es_alias" class="input" value="${s ? esc(s.alias) : ''}"></div>
+        <div><label>Role / Designation</label><input type="text" id="es_role" class="input" value="${s ? esc(s.role) : 'Journalist'}"></div>
+        <div><label>Desk</label>
+          <select id="es_desk" class="input">
+            <option value="">-- None --</option>
+            ${DB.desks.map(d => `<option value="${d.desk_id}" ${s && s.desk_id === d.desk_id ? 'selected' : ''}>${esc(d.display_name)}</option>`).join('')}
+          </select>
+        </div>
+        <div><label><input type="checkbox" id="es_in_charge" ${s && s.in_charge === 'Y' ? 'checked' : ''}> Is In-Charge?</label></div>
+        <div><label><input type="checkbox" id="es_active" ${!s || s.active === 'Y' ? 'checked' : ''}> Is Active?</label></div>
+      </div>
+      <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+        <button class="btn btn-primary" id="es_save">Save Staff</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  
+  m.querySelector('#es_save').onclick = async () => {
+    const id = m.querySelector('#es_id').value.trim();
+    const name = m.querySelector('#es_name').value.trim();
+    const alias = m.querySelector('#es_alias').value.trim();
+    const role = m.querySelector('#es_role').value.trim();
+    const desk = m.querySelector('#es_desk').value;
+    const inCharge = m.querySelector('#es_in_charge').checked ? 'Y' : 'N';
+    const active = m.querySelector('#es_active').checked ? 'Y' : 'N';
+    
+    if (!id || !name) return alert('ID and Name are required!');
+    
+    const obj = {
+      staff_id: id, canonical_name: name, display_name: name, alias, role, desk_id: desk, in_charge: inCharge, active
+    };
+    
+    m.querySelector('#es_save').textContent = 'Saving...';
+    try {
+      if (s) {
+        await dbClient.from('staff_master').update(obj).eq('staff_id', id);
+        logAudit('UPDATE_STAFF', id, null, desk, JSON.stringify(s), JSON.stringify(obj), 'Admin edit', '');
+      } else {
+        await dbClient.from('staff_master').insert([obj]);
+        // Insert empty schedule for all 7 days
+        const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+        const pRoster = days.map(d => ({
+          staff_id: id, day_of_week: d, shift_id: 'OFF'
+        }));
+        await dbClient.from('permanent_roster').insert(pRoster);
+        logAudit('ADD_STAFF', id, null, desk, '', JSON.stringify(obj), 'Admin add', '');
+      }
+      toast('Staff saved successfully!');
+      m.remove();
+      // realtime will trigger reload, but let's reload anyway just in case
+      await loadAllData();
+      renderCurrentView();
+    } catch(err) {
+      alert('Error saving staff: ' + err.message);
+      m.querySelector('#es_save').textContent = 'Save Staff';
+    }
+  };
+};
+
 function renderStaffDirectory(root) {
+  const isAdmin = window.currentUserRole === 'admin';
   root.innerHTML = `
-    <div class="section-title">Staff Directory (${DB.staff.length} Employees)</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+      <div class="section-title" style="margin:0;">Staff Directory (${DB.staff.length} Employees)</div>
+      ${isAdmin ? `<button class="btn btn-primary" id="btnAddStaff">+ Add New Staff</button>` : ''}
+    </div>
     <div class="table-container">
       <table class="datatable">
         <thead>
@@ -1559,7 +1661,8 @@ function renderStaffDirectory(root) {
             <th>Role</th>
             <th>In-Charge</th>
             <th>Status</th>
-          </tr>
+              ${isAdmin ? '<th>Actions</th>' : ''}
+            </tr>
         </thead>
         <tbody>
           ${DB.staff.map(s => {
@@ -1573,13 +1676,22 @@ function renderStaffDirectory(root) {
                 <td>${esc(s.role)}</td>
                 <td>${toBool(s.in_charge) ? ' Yes' : ''}</td>
                 <td>${toBool(s.active) ? '<span class="badge" style="background:#22c55e;">Active</span>' : '<span class="badge" style="background:#94a3b8;">Inactive</span>'}</td>
-              </tr>
+                  ${isAdmin ? `<td><button class="btn btn-secondary btn-sm" onclick="editStaff('${s.staff_id}')">Edit</button></td>` : ''}
+                </tr>
             `;
           }).join('')}
         </tbody>
       </table>
     </div>
   `;
+
+  
+  const btnAdd = root.querySelector('#btnAddStaff');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', () => {
+      editStaff(null);
+    });
+  }
 
   root.querySelectorAll('[data-staff]').forEach(el => {
     el.addEventListener('click', () => showStaffModal(el.getAttribute('data-staff')));
@@ -1747,7 +1859,8 @@ function renderSettings(root) {
             <th>Description</th>
             <th>Severity</th>
             <th>Status</th>
-          </tr>
+              ${isAdmin ? '<th>Actions</th>' : ''}
+            </tr>
         </thead>
         <tbody>
           ${DB.warnings.map(w => `
@@ -1817,7 +1930,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       appScreen.style.display = 'flex';
       
       document.querySelectorAll('#navlist li').forEach(li => {
-        if (li.getAttribute('data-view') === 'settings') {
+        if (li.getAttribute('data-view') === 'settings' || li.getAttribute('data-view') === 'audit') {
           li.style.display = window.currentUserRole === 'admin' ? 'block' : 'none';
         }
       });

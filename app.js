@@ -1866,7 +1866,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
-  async function startApp() {
+  async function startApp() {\n    if (window.appStarted) return;\n    window.appStarted = true;
     root.innerHTML = '<div class="empty"> Connecting to Supabase and loading data</div>';
     try {
       await loadAllData();

@@ -23,7 +23,8 @@ let DB = {
   config: {}
 };
 
-window.addEventListener('unhandledrejection', function(event) { alert('Unhandled promise rejection: ' + event.reason); });\n  window.onerror = function(msg, url, lineNo, columnNo, error) {
+window.addEventListener('unhandledrejection', function(event) { alert('Unhandled promise rejection: ' + event.reason); });
+  window.onerror = function(msg, url, lineNo, columnNo, error) {
   const root = document.getElementById('viewRoot');
   if (root && root.innerHTML === '') {
     root.innerHTML = `<div style="color:red; padding:20px;"><h3>JS Error</h3><p>${msg}</p><p>Line: ${lineNo}</p></div>`;

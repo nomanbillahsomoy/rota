@@ -582,6 +582,15 @@ function shiftOptions(selected = '') {
 
 function bindNav() {
   document.querySelectorAll('#navlist li').forEach(li => {
+    if (li.getAttribute('data-view') === 'settings' && currentUserRole !== 'admin') { li.style.display = 'none'; }
+    if (li.getAttribute('data-view') === 'settings' && currentUserRole !== 'admin') {
+      li.style.display = 'none';
+    }
+
+    if (li.getAttribute('data-view') === 'settings' && currentUserRole !== 'admin') {
+      li.style.display = 'none';
+    }
+
     li.addEventListener('click', () => {
       document.querySelectorAll('#navlist li').forEach(x => x.classList.remove('active'));
       li.classList.add('active');
@@ -1108,7 +1117,7 @@ function renderSchedule(root) {
             });
             
             return `<div class="cell ${cls}" style="padding:0;">
-              <select class="inline-select" onchange="updatePermanentRoster('${s.staff_id}', '${d.weekday}', this.value); this.parentElement.className = 'cell ' + (this.value === 'OFF' ? 'off' : (this.value === '11pm' ? 'night' : ''));">
+              <select class="inline-select" ${currentUserRole !== 'admin' ? 'disabled' : ''} ${currentUserRole !== 'admin' ? 'disabled' : ''} ${currentUserRole !== 'admin' ? 'disabled' : ''} onchange="updatePermanentRoster('${s.staff_id}', '${d.weekday}', this.value); this.parentElement.className = 'cell ' + (this.value === 'OFF' ? 'off' : (this.value === '11pm' ? 'night' : ''));">
                 ${optionsHtml}
               </select>
             </div>`;
@@ -1790,19 +1799,79 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize Supabase Client
   dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  root.innerHTML = '<div class="empty"> Connecting to Supabase and loading data</div>';
+  // AUTH LOGIC
+  const loginScreen = document.getElementById('loginScreen');
+  const appScreen = document.getElementById('app');
+  const loginBtn = document.getElementById('btnLogin');
+  const loginEmail = document.getElementById('loginEmail');
+  const loginPass = document.getElementById('loginPass');
+  const loginError = document.getElementById('loginError');
+  const logoutBtn = document.getElementById('btnLogout');
 
-  try {
-    await loadAllData();
-    initRealtime();
-    renderCurrentView();
-  } catch (err) {
-    root.innerHTML = `
-      <div class="conflict-box" style="margin:20px;">
-        <h3>Database Setup Required</h3>
-        <p>Could not load tables from Supabase: <strong>${esc(err.message)}</strong></p>
-        <pre style="font-size: 11px; white-space: pre-wrap; margin-top: 10px;">${esc(err.stack)}</pre>
-      </div>
-    `;
+  let currentUser = null;
+  let currentUserRole = 'user'; // default
+
+  async function checkAuth() {
+    const { data: { session } } = await dbClient.auth.getSession();
+    if (session && session.user) {
+      currentUser = session.user;
+      currentUserRole = session.user.user_metadata?.role || 'user';
+      loginScreen.style.display = 'none';
+      appScreen.style.display = 'flex';
+      startApp();
+    } else {
+      loginScreen.style.display = 'flex';
+      appScreen.style.display = 'none';
+    }
   }
+
+  dbClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      currentUserRole = 'user';
+      loginScreen.style.display = 'flex';
+      appScreen.style.display = 'none';
+    }
+  });
+
+  loginBtn.onclick = async () => {
+    loginError.style.display = 'none';
+    loginBtn.textContent = 'Logging in...';
+    const email = loginEmail.value.trim();
+    const password = loginPass.value.trim();
+    
+    const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      loginError.textContent = error.message;
+      loginError.style.display = 'block';
+    } else {
+      await checkAuth();
+    }
+    loginBtn.textContent = 'Log In';
+  };
+
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      await dbClient.auth.signOut();
+    };
+  }
+
+  async function startApp() {
+    root.innerHTML = '<div class="empty"> Connecting to Supabase and loading data</div>';
+    try {
+      await loadAllData();
+      initRealtime();
+      renderCurrentView();
+    } catch (err) {
+      root.innerHTML = `
+        <div class="conflict-box" style="margin:20px;">
+          <h3>Database Setup Required</h3>
+          <p>Could not load tables from Supabase: <strong>${esc(err.message)}</strong></p>
+          <pre style="font-size: 11px; white-space: pre-wrap; margin-top: 10px;">${esc(err.stack)}</pre>
+        </div>
+      `;
+    }
+  }
+
+  await checkAuth();
 });

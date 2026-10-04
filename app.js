@@ -1095,12 +1095,24 @@ function renderSchedule(root) {
 
       ${activeStaff.map(s => {
         const desk = getDeskById(s.desk_id);
-        const dayCells = days.map(d => {
-          const r = DB.roster.find(ro => ro.staff_id === s.staff_id && ro.weekday === d.weekday);
-          let label = r ? (r.shift_type === 'OFF' ? 'OFF' : (r.shift_type === 'NIGHT_CONDITIONAL' ? `N (${r.night_pattern})` : r.shift_code)) : '';
-          let cls = label === 'OFF' ? 'off' : (label === '11pm' ? 'night' : '');
-          return `<div class="cell ${cls}">${esc(label)}</div>`;
-        }).join('');
+                const dayCells = days.map(d => {
+            const r = DB.roster.find(ro => ro.staff_id === s.staff_id && ro.weekday === d.weekday);
+            let currentVal = r ? (r.shift_type === 'OFF' ? 'OFF' : r.shift_code) : '';
+            if (!currentVal && r && r.shift_type === 'Night') currentVal = '11pm';
+            
+            let cls = currentVal === 'OFF' ? 'off' : (currentVal === '11pm' ? 'night' : '');
+            
+            let optionsHtml = `<option value="OFF" ${currentVal === 'OFF' ? 'selected' : ''}>OFF</option>`;
+            DB.shifts.forEach(shift => {
+              optionsHtml += `<option value="${shift.shift_code}" ${currentVal === shift.shift_code ? 'selected' : ''}>${shift.shift_code}</option>`;
+            });
+            
+            return `<div class="cell ${cls}" style="padding:0;">
+              <select class="inline-select" onchange="updatePermanentRoster('${s.staff_id}', '${d.weekday}', this.value); this.parentElement.className = 'cell ' + (this.value === 'OFF' ? 'off' : (this.value === '11pm' ? 'night' : ''));">
+                ${optionsHtml}
+              </select>
+            </div>`;
+          }).join('');
 
         return `
           <div class="cell staffcell">

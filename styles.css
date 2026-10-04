@@ -696,7 +696,7 @@ body.fullscreen-mode #main {
   font-weight: inherit;
   color: inherit;
   cursor: pointer;
-  appearance: none;
+  /* appearance: none; */
   outline: none;
 }
 .inline-select:hover {

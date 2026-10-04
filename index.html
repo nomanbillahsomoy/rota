@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Somoy TV - Web Desk Duty Management System</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="app">
+  <div id="nav">
+    <div class="brand">
+      <div class="org">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Somoy TV - Web Desk
+      </div>
+      <div class="title">Duty Management</div>
+    </div>
+    <ul class="navlist" id="navlist">
+      <li data-view="dashboard" class="active">📅 Dashboard</li>
+      <li data-view="visual">📈 Visual Timeline</li>
+      <li data-view="schedule">📝 Permanent Schedule</li>
+      <li data-view="changes">⚡ Changes &amp; Exceptions</li>
+      <li data-view="leave">🌴 Leave / Day Off</li>
+      <li data-view="staff">👥 Staff Directory</li>
+      <li data-view="search">🔍 Search Staff</li>
+      <li data-view="audit">📜 Audit Log</li>
+      <li data-view="settings">⚙️ System Settings</li>
+    </ul>
+    <div class="foot">
+      <span class="live-indicator" id="liveStatus">
+        <span class="live-dot"></span> Live Sync
+      </span>
+      <span>Asia/Dhaka</span>
+    </div>
+  </div>
+  <div id="main">
+    <div id="viewRoot"></div>
+  </div>
+</div>
+<div id="toastHost"></div>
+<script>
+  window.onerror = function(msg, url, line, col, err) {
+    document.getElementById('viewRoot').innerHTML = '<div style="color:red;padding:20px"><h3>HTML Inline Catch: JS Error</h3><p>' + msg + '</p><p>Line: ' + line + '</p></div>';
+  };
+</script>
+<script charset="utf-8" src="app.js"></script>
+</body>
+</html>

@@ -71,6 +71,7 @@ function nowMinutesOfDay() {
 }
 
 function parseDateStr(str) {
+  if (str && str.includes(' ')) str = str.split(' ')[0];
   const parts = str.split('-');
   const d = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0));
   return d;

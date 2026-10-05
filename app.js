@@ -951,7 +951,6 @@ function renderDashboard(root) {
           <tr>
             <th>Desk</th>
             <th>Employee</th>
-            <th>Role</th>
             <th>Shift</th>
               <th>Changed Time</th>
               <th>Status</th>
@@ -964,9 +963,8 @@ function renderDashboard(root) {
             <tr>
               <td>${esc(r.deskName)}</td>
               <td class="clickable" data-staff="${r.staffId}">
-                ${esc(r.name)} ${r.alias ? `<span class="muted">(${esc(r.alias)})</span>` : ''}
-              </td>
-              <td>${esc(r.role)}</td>
+                  ${esc(r.name)} ${r.alias ? `<span class="muted">(${esc(r.alias)})</span>` : ''}
+                </td>
               <td>${esc(r.scheduledShiftCode || 'OFF')}</td>
               <td>${(r.changeType !== 'NONE' && r.effectiveStart) ? `${formatTime12(r.effectiveStart)} - ${formatTime12(r.effectiveEnd)}` : ''}</td>
               <td>${badgeHtml(r.badge, r.statusLabel)}</td>

@@ -101,6 +101,17 @@ function weeksBetween(dateStrA, dateStrB) {
   return Math.round((a - b) / (7 * 24 * 3600 * 1000));
 }
 
+function formatTime12(timeStr) {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  let h = Number(parts[0]);
+  const m = parts[1];
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return m === '00' ? `${h}${ampm}` : `${h}:${m}${ampm}`;
+}
+
 function parseTimeToMinutes(hhmm) {
   if (!hhmm) return null;
   const p = String(hhmm).split(':');
@@ -958,8 +969,8 @@ function renderDashboard(root) {
               </td>
               <td>${esc(r.role)}</td>
               <td>${esc(r.scheduledShiftCode || 'OFF')}</td>
-              <td>${r.scheduledStart ? `${r.scheduledStart}${r.scheduledEnd}` : ''}</td>
-              <td>${r.effectiveStart ? `${r.effectiveStart}${r.effectiveEnd}` : ''}</td>
+              <td>${r.scheduledStart ? `${formatTime12(r.scheduledStart)} - ${formatTime12(r.scheduledEnd)}` : ''}</td>
+              <td>${r.effectiveStart ? `${formatTime12(r.effectiveStart)} - ${formatTime12(r.effectiveEnd)}` : ''}</td>
               <td>${badgeHtml(r.badge, r.statusLabel)}</td>
               <td>${r.changeType !== 'NONE' ? esc(r.changeType.replace(/_/g, ' ')) : ''}</td>
               <td>${esc(r.remarks || (r.coveredBy ? 'Covered by ' + r.coveredBy : ''))}</td>
@@ -1018,13 +1029,13 @@ function showStaffModal(staffId) {
 
       <div class="section-title">Selected Date (${fmtDateDisplay(STATE.date)})</div>
       <div>
-        ${badgeHtml(todaySt.badge, todaySt.label)}  ${todayDuty.effectiveStart ? `${todayDuty.effectiveStart}${todayDuty.effectiveEnd}` : 'No duty'}
+        ${badgeHtml(todaySt.badge, todaySt.label)}  ${todayDuty.effectiveStart ? `${formatTime12(todayDuty.effectiveStart)} - ${formatTime12(todayDuty.effectiveEnd)}` : 'No duty'}
         ${todayDuty.remarks ? `<br><span class="muted">${esc(todayDuty.remarks)}</span>` : ''}
       </div>
 
       <div class="section-title">Tomorrow (${fmtDateDisplay(addDaysToStr(STATE.date, 1))})</div>
       <div>
-        ${badgeHtml(tomorrowSt.badge, tomorrowSt.label)}  ${tomorrowDuty.effectiveStart ? `${tomorrowDuty.effectiveStart}${tomorrowDuty.effectiveEnd}` : 'No duty'}
+        ${badgeHtml(tomorrowSt.badge, tomorrowSt.label)}  ${tomorrowDuty.effectiveStart ? `${formatTime12(tomorrowDuty.effectiveStart)} - ${formatTime12(tomorrowDuty.effectiveEnd)}` : 'No duty'}
       </div>
 
       <div class="section-title">Night Cycle Pattern (This Week)</div>

@@ -949,29 +949,29 @@ function renderDashboard(root) {
       <table class="datatable">
         <thead>
           <tr>
-            <th>Desk</th>
-            <th>Employee</th>
-            <th>Shift</th>
-              <th>Status</th>
-              <th>Changed Time</th>
-            <th>Change</th>
+            <th style="width:1%; white-space:nowrap; padding-right: 30px;">Desk</th>
+            <th style="width:1%; white-space:nowrap; padding-right: 30px;">Employee</th>
+            <th style="width:1%; white-space:nowrap; padding-right: 30px;">Shift</th>
+            <th style="width:1%; white-space:nowrap; padding-right: 30px;">Status</th>
+            <th style="width:1%; white-space:nowrap; padding-right: 30px;">Changed Time</th>
+            <th style="width:1%; white-space:nowrap; padding-right: 30px;">Change</th>
             <th>Remarks</th>
           </tr>
         </thead>
         <tbody>
           ${filteredRows.length ? filteredRows.map(r => `
             <tr>
-              <td>${esc(r.deskName)}</td>
-              <td class="clickable" data-staff="${r.staffId}">
+              <td style="white-space:nowrap;">${esc(r.deskName)}</td>
+              <td class="clickable" data-staff="${r.staffId}" style="white-space:nowrap;">
                   ${esc(r.name)} ${r.alias ? `<span class="muted">(${esc(r.alias)})</span>` : ''}
-                </td>
-              <td>${esc(r.scheduledShiftCode || 'OFF')}</td>
-              <td>${badgeHtml(r.badge, r.statusLabel)}</td>
-              <td>${(r.changeType !== 'NONE' && r.effectiveStart) ? `${formatTime12(r.effectiveStart)} - ${formatTime12(r.effectiveEnd)}` : ''}</td>
-              <td>${r.changeType !== 'NONE' ? esc(r.changeType.replace(/_/g, ' ')) : ''}</td>
+              </td>
+              <td style="white-space:nowrap;">${esc(r.scheduledShiftCode || 'OFF')}</td>
+              <td style="white-space:nowrap;">${badgeHtml(r.badge, r.statusLabel)}</td>
+              <td style="white-space:nowrap;">${(r.changeType !== 'NONE' && r.effectiveStart) ? `${formatTime12(r.effectiveStart)} - ${formatTime12(r.effectiveEnd)}` : ''}</td>
+              <td style="white-space:nowrap;">${r.changeType !== 'NONE' ? esc(r.changeType.replace(/_/g, ' ')) : ''}</td>
               <td>${esc(r.remarks || (r.coveredBy ? 'Covered by ' + r.coveredBy : ''))}</td>
             </tr>
-          `).join('') : '<tr><td colspan="9" class="empty">No staff match the selected filters.</td></tr>'}
+          `).join('') : '<tr><td colspan="7" class="empty">No staff match the selected filters.</td></tr>'}
         </tbody>
       </table>
     </div>

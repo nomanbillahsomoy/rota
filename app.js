@@ -953,9 +953,8 @@ function renderDashboard(root) {
             <th>Employee</th>
             <th>Role</th>
             <th>Shift</th>
-            <th>Scheduled</th>
-            <th>Actual/Revised</th>
-            <th>Status</th>
+              <th>Changed Time</th>
+              <th>Status</th>
             <th>Change</th>
             <th>Remarks</th>
           </tr>
@@ -969,8 +968,7 @@ function renderDashboard(root) {
               </td>
               <td>${esc(r.role)}</td>
               <td>${esc(r.scheduledShiftCode || 'OFF')}</td>
-              <td>${r.scheduledStart ? `${formatTime12(r.scheduledStart)} - ${formatTime12(r.scheduledEnd)}` : ''}</td>
-              <td>${r.effectiveStart ? `${formatTime12(r.effectiveStart)} - ${formatTime12(r.effectiveEnd)}` : ''}</td>
+              <td>${(r.changeType !== 'NONE' && r.effectiveStart) ? `${formatTime12(r.effectiveStart)} - ${formatTime12(r.effectiveEnd)}` : ''}</td>
               <td>${badgeHtml(r.badge, r.statusLabel)}</td>
               <td>${r.changeType !== 'NONE' ? esc(r.changeType.replace(/_/g, ' ')) : ''}</td>
               <td>${esc(r.remarks || (r.coveredBy ? 'Covered by ' + r.coveredBy : ''))}</td>

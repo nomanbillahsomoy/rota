@@ -1019,7 +1019,7 @@ function showStaffModal(staffId) {
         <div>
           <div style="font-size:18px;font-weight:700;color:var(--navy);">${esc(staff.display_name)} ${staff.alias ? `(${esc(staff.alias)})` : ''}</div>
           <div class="muted">${esc(desk ? desk.display_name : staff.desk_id)}  ${esc(staff.role)} ${toBool(staff.in_charge) ? ' In-Charge' : ''}</div>
-          <div style="margin-top:4px; font-weight:500; color:#3b82f6;">Mobile: ${staff.notes ? esc(staff.notes) : 'No mobile number'}</div>
+          <div style="margin-top:4px; font-weight:500; color:#3b82f6;">Mobile: ${staff.notes ? `<a href="tel:${esc(staff.notes)}" style="color:inherit;text-decoration:none;">${esc(staff.notes)}</a>` : 'No mobile number'}</div>
         </div>
         <button class="btn small" id="closeModal"></button>
       </div>
@@ -1754,7 +1754,7 @@ function renderSearch(root) {
                 <tr>
                   <td class="clickable" data-staff="${s.staff_id}"><strong>${esc(s.display_name)}</strong></td>
                   <td>${esc(s.alias)}</td>
-                  <td>${s.notes ? esc(s.notes) : '-'}</td>
+                  <td>${s.notes ? `<a href="tel:${esc(s.notes)}" style="color:var(--teal-dark);text-decoration:underline;">${esc(s.notes)}</a>` : '-'}</td>
                   <td>${esc(desk ? desk.display_name : s.desk_id)}</td>
                   <td>${esc(s.role)}</td>
                   <td>${badgeHtml(st.badge, st.label)}</td>

@@ -48,6 +48,7 @@ const WEEKDAY_NAMES = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', '
 
 function todayStr() {
   const d = new Date();
+  d.setHours(d.getHours() - 7);
   // Get Dhaka time YYYY-MM-DD
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).formatToParts(d);
   const y = parts.find(p => p.type === 'year').value;
@@ -432,6 +433,7 @@ function timeBasedStatus(row, nowMin) {
   const end = parseTimeToMinutes(row.effectiveEnd);
   const crossesMidnight = end <= start;
   if (!crossesMidnight) {
+    if (nowMin < 420 && start >= 420) return 'COMPLETED';
     if (nowMin < start) return 'UPCOMING';
     if (nowMin >= start && nowMin < end) return 'ON_DUTY';
     return 'COMPLETED';
